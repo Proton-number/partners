@@ -21,7 +21,7 @@ export default function Home() {
             file.
           </h1>
           <h2 className="text-2xl font-bold">
-            I am Tobiloba Favour Ifeoluwa Dacron!!
+            I am Tobiloba Favour Ifeoluwa Dacron 4show!!
           </h2>
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
             Looking for a starting point or more instructions? Head over to{" "}
