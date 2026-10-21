@@ -24,9 +24,6 @@ jobs:
 
       - name: Run Next.js Production Build
         run: yarn build
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
       - name: Sync standalone bundle via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
