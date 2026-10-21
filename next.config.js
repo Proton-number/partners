@@ -1,24 +1,16 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  // Generate a minimal, self-contained production build
-  output: "standalone",
-
-  experimental: {
-    agentFeedback: true,
-  },
-
-  cacheComponents: true,
-  partialPrefetching: true,
-
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
+  images: {
+    qualities: [70, 75, 85],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "nzvyjnmmwwbuhyeocyia.supabase.co",
+        pathname: "/storage/v1/object/public/property-images/**",
       },
-    },
+    ],
   },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
