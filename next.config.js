@@ -1,12 +1,16 @@
-import type { NextConfig } from "next";
+/** @type {import('next').NextConfig} */
 
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
+  // Generate a minimal, self-contained production build
+  output: "standalone",
+
   experimental: {
     agentFeedback: true,
   },
+
   cacheComponents: true,
   partialPrefetching: true,
+
   turbopack: {
     rules: {
       "*.css": {
