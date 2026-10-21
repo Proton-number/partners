@@ -1,16 +1,24 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  images: {
-    qualities: [70, 75, 85],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "nzvyjnmmwwbuhyeocyia.supabase.co",
-        pathname: "/storage/v1/object/public/property-images/**",
+  // Generate a minimal, self-contained production build
+  output: "standalone",
+
+  experimental: {
+    agentFeedback: true,
+  },
+
+  cacheComponents: true,
+  partialPrefetching: true,
+
+  turbopack: {
+    rules: {
+      "*.css": {
+        loaders: ["@tailwindcss/turbopack"],
+        as: "*.css",
       },
-    ],
+    },
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
