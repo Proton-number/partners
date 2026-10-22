@@ -3,7 +3,7 @@ name: Deploy Standalone Next.js to cPanel
 on:
   push:
     branches:
-      - master
+      - master # Matches your master branch
 
 jobs:
   web-deploy:
@@ -25,14 +25,6 @@ jobs:
       - name: Run Next.js Production Build
         run: yarn build
 
-      - name: Prepare Standalone Artifact
-        run: |
-          mkdir -p ./deploy-package
-          cp -r .next/standalone/* ./deploy-package/
-          mkdir -p ./deploy-package/.next
-          cp -r .next/static ./deploy-package/.next/static
-          cp -r public ./deploy-package/public
-
       - name: Sync standalone bundle via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
@@ -41,6 +33,6 @@ jobs:
           password: ${{ secrets.FTP_PASSWORD }}
           protocol: ftps
           port: 21
-          local-dir: ./deploy-package/
-          server-dir: /home/conswvpe/partners/
+          local-dir: ./
+          server-dir: ./
           dangerous-clean-slate: false
