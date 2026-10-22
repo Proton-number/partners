@@ -1,16 +1,17 @@
-name: Deploy Standalone Next.js to cPanel
+name: Deploy Next.js to cPanel
 
 on:
   push:
     branches:
-      - master # Matches your master branch
+      - master
 
 jobs:
   web-deploy:
-    name: Build and Standalone Transfer
+    name: Build, Upload and Restart
     runs-on: ubuntu-latest
+
     steps:
-      - name: Get latest code
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -22,17 +23,48 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run Next.js Production Build
+      - name: Build Next.js application
         run: yarn build
 
-      - name: Sync standalone bundle via FTP
+      - name: Upload project to cPanel
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
           local-dir: ./
           server-dir: ./
           dangerous-clean-slate: false
+
+      - name: Restart cPanel Node.js application
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          python3 - <<'PY'
+          import ftplib
+          import io
+          import os
+          from datetime import datetime, timezone
+
+          server = os.environ["FTP_SERVER"]
+          username = os.environ["FTP_USERNAME"]
+          password = os.environ["FTP_PASSWORD"]
+
+          content = (
+              "Restart requested at "
+              + datetime.now(timezone.utc).isoformat()
+              + "\n"
+          ).encode()
+
+          with ftplib.FTP(server, timeout=30) as ftp:
+              ftp.login(username, password)
+              ftp.cwd("tmp")
+              ftp.storbinary(
+                  "STOR restart.txt",
+                  io.BytesIO(content)
+              )
+
+          print("Restart signal uploaded successfully.")
+          PY
