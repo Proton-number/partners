@@ -7,11 +7,11 @@ on:
 
 jobs:
   web-deploy:
-    name: Build and Transfer
+    name: Build and Deploy Next.js
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get latest code
+      - name: Checkout latest code
         uses: actions/checkout@v4
 
       - name: Set up Node.js
@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Run Next.js Production Build
+      - name: Build Next.js application
         run: yarn build
 
       - name: Deploy via FTPS
@@ -39,3 +39,10 @@ jobs:
           dangerous-clean-slate: false
           timeout: 60000
           log-level: verbose
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            .next/trace
+            .next/trace-build
+            .next/turbopack
