@@ -1,9 +1,6 @@
 /** @type {import('next').NextConfig} */
 
 const nextConfig = {
-  // Generate a minimal, self-contained production build
-  output: "standalone",
-
   experimental: {
     agentFeedback: true,
   },

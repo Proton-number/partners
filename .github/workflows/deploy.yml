@@ -1,14 +1,15 @@
-name: Deploy Standalone Next.js to cPanel
+name: Deploy Next.js to cPanel
 
 on:
   push:
     branches:
-      - master # Matches your master branch
+      - master
 
 jobs:
   web-deploy:
-    name: Build and Standalone Transfer
+    name: Build and Transfer
     runs-on: ubuntu-latest
+
     steps:
       - name: Get latest code
         uses: actions/checkout@v4
@@ -25,7 +26,7 @@ jobs:
       - name: Run Next.js Production Build
         run: yarn build
 
-      - name: Sync standalone bundle via FTP
+      - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -36,3 +37,5 @@ jobs:
           local-dir: ./
           server-dir: ./
           dangerous-clean-slate: false
+          timeout: 60000
+          log-level: verbose
