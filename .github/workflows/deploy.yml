@@ -42,5 +42,5 @@ jobs:
           protocol: ftps
           port: 21
           local-dir: ./deploy-package/
-          server-dir: ./
+          server-dir: /home/conswvpe/partners/
           dangerous-clean-slate: false
