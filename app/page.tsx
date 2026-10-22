@@ -24,7 +24,7 @@ export default function Home() {
             I am Tobiloba Favour Ifeoluwa Dacron 4show!! Adebimpe DaycronBArca 
 
 
-            I love anime
+            I love anime again and again
           </h2>
           <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
             Looking for a starting point or more instructions? Head over to{" "}
