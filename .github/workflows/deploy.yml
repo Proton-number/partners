@@ -25,6 +25,11 @@ jobs:
 
       - name: Build Next.js application
         run: yarn build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          NEXT_PUBLIC_SUPABASE_SUBMIT_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_SUBMIT_URL }}
+          NEXT_PUBLIC_SUPABASE_PUBLISHABLE_SUBMIT_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_SUBMIT_KEY }}
 
       - name: Deploy via FTPS
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
