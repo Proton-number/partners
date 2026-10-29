@@ -6,6 +6,8 @@ import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/submitClient";
+import { useSearchParams } from "next/navigation";
+import { Copy, Check } from "lucide-react";
 
 const ease = [0.2, 0.7, 0.2, 1] as const;
 const MIN_YEAR = 1970;
@@ -60,7 +62,16 @@ const inputCls =
 const labelCls = "font-serif text-xs uppercase tracking-wider text-neutral-600";
 
 type Errors = Partial<
-  Record<"name" | "email" | "year" | "birthday" | "whatsapp", string>
+  Record<
+    | "name"
+    | "email"
+    | "year"
+    | "birthday"
+    | "whatsapp"
+    | "address"
+    | "referral",
+    string
+  >
 >;
 
 function Word({
@@ -157,16 +168,30 @@ function validate(form: HTMLFormElement): Errors {
     errors.whatsapp = "Enter a valid number, e.g. +234 801 234 5678.";
   }
 
+  const address = get("address");
+  if (address.length < 5) {
+    errors.address = "Please enter a valid address.";
+  }
+
+  const referral = get("referral");
+  if (referral && !/^[A-Za-z0-9]{8}$/.test(referral)) {
+    errors.referral = "Referral codes are 8 letters or numbers.";
+  }
+
   return errors;
 }
 
 export default function PartnersPage() {
+  const searchParams = useSearchParams();
+  const refFromUrl = searchParams.get("ref") ?? "";
   const supabase = createClient();
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [sent, setSent] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
+  const [myCode, setMyCode] = useState("");
+  const [copied, setCopied] = useState(false);
 
   const currentYear = new Date().getFullYear();
   const today = new Date().toISOString().split("T")[0];
@@ -182,7 +207,7 @@ export default function PartnersPage() {
     try {
       const data = new FormData(form);
       const get = (key: string) => String(data.get(key) ?? "").trim();
-      const { error: insertError } = await supabase
+      const { data: row, error: insertError } = await supabase
         .from("partner_applications")
         .insert({
           name: get("name"),
@@ -190,18 +215,24 @@ export default function PartnersPage() {
           year_joined: Number(get("year")),
           date_of_birth: get("birthday"),
           whatsapp: get("whatsapp").replace(/[\s()-]/g, ""),
-        });
+          address: get("address"),
+          referred_by: get("referral").toUpperCase() || null,
+        })
+        .select("referral_code")
+        .single();
       if (insertError) {
-        console.error("Supabase error:", insertError); // add this
+        console.error("Supabase error:", insertError);
         if (insertError.code === "23505") {
           setError("This email has already been submitted.");
+        } else if (insertError.code === "23503") {
+          setErrors({ referral: "That referral code doesn't exist." });
         } else {
           setError("Something went wrong. Please try again.");
         }
         return;
       }
       form.reset();
-
+      setMyCode(row.referral_code);
       setSent(true);
     } catch (error) {
       setError("Something went wrong. Please try again.");
@@ -210,12 +241,15 @@ export default function PartnersPage() {
     }
   }
 
-  useEffect(() => {
-    if (!sent) return;
-    const timer = setTimeout(() => setSent(false), 10000);
+  const referralLink = myCode
+    ? `${window.location.origin}/partners?ref=${myCode}`
+    : "";
 
-    return () => clearTimeout(timer);
-  }, [sent]);
+  async function copyLink() {
+    await navigator.clipboard.writeText(referralLink);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
 
   return (
     <main className="min-h-screen overflow-x-clip bg-neutral-50 px-6 pb-24 pt-32 sm:pt-40">
@@ -350,24 +384,63 @@ export default function PartnersPage() {
               </Field>
             </div>
 
+            <div className="grid grid-cols-1 gap-x-6 gap-y-6 sm:grid-cols-2">
+              <Field
+                id="whatsapp"
+                label="WhatsApp Number"
+                error={errors.whatsapp}
+              >
+                <Input
+                  id="whatsapp"
+                  name="whatsapp"
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="+234 801 234 5678"
+                  required
+                  aria-invalid={!!errors.whatsapp}
+                  aria-describedby={
+                    errors.whatsapp ? "whatsapp-error" : undefined
+                  }
+                  className={inputCls}
+                />
+              </Field>
+              <Field id="address" label="Address" error={errors.address}>
+                <Input
+                  id="address"
+                  name="address"
+                  type="text"
+                  inputMode="text"
+                  autoComplete="text"
+                  placeholder="123 Main St, Lagos, Nigeria"
+                  required
+                  aria-invalid={!!errors.address}
+                  aria-describedby={
+                    errors.address ? "address-error" : undefined
+                  }
+                  className={inputCls}
+                />
+              </Field>
+            </div>
+
             <Field
-              id="whatsapp"
-              label="WhatsApp Number"
-              error={errors.whatsapp}
+              id="referral"
+              label="Referral Code (optional)"
+              error={errors.referral}
             >
               <Input
-                id="whatsapp"
-                name="whatsapp"
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                placeholder="+234 801 234 5678"
-                required
-                aria-invalid={!!errors.whatsapp}
+                id="referral"
+                name="referral"
+                type="text"
+                autoComplete="off"
+                placeholder="e.g. A3F9C21B"
+                maxLength={8}
+                defaultValue={refFromUrl}
+                aria-invalid={!!errors.referral}
                 aria-describedby={
-                  errors.whatsapp ? "whatsapp-error" : undefined
+                  errors.referral ? "referral-error" : undefined
                 }
-                className={inputCls}
+                className={`${inputCls} uppercase`}
               />
             </Field>
 
@@ -375,7 +448,7 @@ export default function PartnersPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="group h-12 w-full rounded-none bg-[#091e3c] font-serif text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#071832] disabled:cursor-not-allowed disabled:opacity-60"
+                className="group h-12 w-full rounded-none bg-[#091e3c] font-serif text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#071832] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
               >
                 {loading ? "Sending..." : "Submit"}
 
@@ -384,7 +457,6 @@ export default function PartnersPage() {
             </motion.div>
           </form>
 
-          {/* Error message */}
           <AnimatePresence>
             {error && (
               <motion.p
@@ -400,7 +472,6 @@ export default function PartnersPage() {
             )}
           </AnimatePresence>
 
-          {/* Success screen */}
           <AnimatePresence>
             {sent && (
               <motion.div
@@ -449,6 +520,31 @@ export default function PartnersPage() {
                 <p className="max-w-xs font-serif text-sm leading-relaxed text-neutral-600">
                   We&apos;ll review your details and contact you shortly.
                 </p>
+                <div className="w-full max-w-xs break-all border border-neutral-200 bg-neutral-50 p-3 font-serif text-xs text-neutral-700">
+                  {referralLink}
+                </div>
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    onClick={copyLink}
+                    className="h-10 rounded-none bg-[#091e3c] px-6 font-serif text-xs uppercase tracking-wider text-white hover:bg-[#071832] cursor-pointer"
+                  >
+                    {copied ? (
+                      <Check className="mr-2 size-4" />
+                    ) : (
+                      <Copy className="mr-2 size-4" />
+                    )}
+                    {copied ? "Copied!" : "Copy link"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setSent(false)}
+                    className="h-10 rounded-none px-6 font-serif text-xs uppercase tracking-wider cursor-pointer"
+                  >
+                    Done
+                  </Button>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
