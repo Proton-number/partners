@@ -1,13 +1,13 @@
 "use client";
 
-import { SyntheticEvent, useState, useEffect } from "react";
+import { SyntheticEvent, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Copy, Check } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/submitClient";
 import { useSearchParams } from "next/navigation";
-import { Copy, Check } from "lucide-react";
+import Image from "next/image";
 
 const ease = [0.2, 0.7, 0.2, 1] as const;
 const MIN_YEAR = 1970;
@@ -198,15 +198,21 @@ export default function PartnersPage() {
 
   async function handleSubmit(e: SyntheticEvent<HTMLFormElement>) {
     e.preventDefault();
+
     const form = e.currentTarget;
     const validationErrors = validate(form);
+
     setErrors(validationErrors);
+
     if (Object.keys(validationErrors).length > 0) return;
+
     setLoading(true);
     setError("");
+
     try {
       const data = new FormData(form);
       const get = (key: string) => String(data.get(key) ?? "").trim();
+
       const { data: row, error: insertError } = await supabase
         .from("partner_applications")
         .insert({
@@ -220,8 +226,10 @@ export default function PartnersPage() {
         })
         .select("referral_code")
         .single();
+
       if (insertError) {
         console.error("Supabase error:", insertError);
+
         if (insertError.code === "23505") {
           setError("This email has already been submitted.");
         } else if (insertError.code === "23503") {
@@ -229,12 +237,14 @@ export default function PartnersPage() {
         } else {
           setError("Something went wrong. Please try again.");
         }
+
         return;
       }
+
       form.reset();
       setMyCode(row.referral_code);
       setSent(true);
-    } catch (error) {
+    } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
@@ -252,17 +262,29 @@ export default function PartnersPage() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-clip bg-neutral-50 px-6 pb-24 pt-32 sm:pt-40">
+    <main className="min-h-screen overflow-x-clip bg-neutral-50 px-6 pb-24 pt-28 sm:pt-36">
       <motion.div
         variants={root}
         initial="hidden"
         animate="show"
         className="mx-auto grid max-w-6xl gap-14 lg:grid-cols-2 lg:items-start lg:gap-16"
       >
+        {/* Introduction */}
         <motion.div
           variants={column}
           className="lg:sticky lg:top-32 lg:self-start lg:pt-6"
         >
+          <motion.div variants={rise} className="mb-12">
+            <Image
+              src="/logo.jpeg"
+              alt="Company logo"
+              width={180}
+              height={80}
+              priority
+              className="h-auto w-32 object-contain sm:w-36"
+            />
+          </motion.div>
+
           <h1 className="font-serif text-4xl font-medium leading-[1.05] tracking-tight text-neutral-900 sm:text-6xl">
             <Word>Partners</Word> <Word>in</Word> <Word>every</Word>{" "}
             <Word className="italic text-[#091e3c]">deal.</Word>
@@ -278,6 +300,7 @@ export default function PartnersPage() {
           </motion.p>
         </motion.div>
 
+        {/* Application form */}
         <motion.div
           variants={panel}
           className="relative overflow-hidden border border-neutral-200 bg-white p-6 shadow-none sm:p-8"
@@ -405,6 +428,7 @@ export default function PartnersPage() {
                   className={inputCls}
                 />
               </Field>
+
               <Field id="address" label="Address" error={errors.address}>
                 <Input
                   id="address"
@@ -448,10 +472,9 @@ export default function PartnersPage() {
               <Button
                 type="submit"
                 disabled={loading}
-                className="group h-12 w-full rounded-none bg-[#091e3c] font-serif text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#071832] disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
+                className="group h-12 w-full cursor-pointer rounded-none bg-[#091e3c] font-serif text-xs font-semibold uppercase tracking-wider text-white hover:bg-[#071832] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {loading ? "Sending..." : "Submit"}
-
                 {loading && <Loader2 className="ml-2 size-4 animate-spin" />}
               </Button>
             </motion.div>
@@ -520,14 +543,16 @@ export default function PartnersPage() {
                 <p className="max-w-xs font-serif text-sm leading-relaxed text-neutral-600">
                   We&apos;ll review your details and contact you shortly.
                 </p>
+
                 <div className="w-full max-w-xs break-all border border-neutral-200 bg-neutral-50 p-3 font-serif text-xs text-neutral-700">
                   {referralLink}
                 </div>
+
                 <div className="flex gap-3">
                   <Button
                     type="button"
                     onClick={copyLink}
-                    className="h-10 rounded-none bg-[#091e3c] px-6 font-serif text-xs uppercase tracking-wider text-white hover:bg-[#071832] cursor-pointer"
+                    className="h-10 cursor-pointer rounded-none bg-[#091e3c] px-6 font-serif text-xs uppercase tracking-wider text-white hover:bg-[#071832]"
                   >
                     {copied ? (
                       <Check className="mr-2 size-4" />
@@ -536,11 +561,12 @@ export default function PartnersPage() {
                     )}
                     {copied ? "Copied!" : "Copy link"}
                   </Button>
+
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => setSent(false)}
-                    className="h-10 rounded-none px-6 font-serif text-xs uppercase tracking-wider cursor-pointer"
+                    className="h-10 cursor-pointer rounded-none px-6 font-serif text-xs uppercase tracking-wider"
                   >
                     Done
                   </Button>
