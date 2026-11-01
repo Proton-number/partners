@@ -1,97 +1,144 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { motion } from "motion/react";
+import Image from "next/image";
+import { ArrowUpRight, Home } from "lucide-react";
+import {
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useSpring,
+  useTransform,
+} from "motion/react";
+import { Button } from "@/components/ui/button";
 
-const ease = [0.2, 0.7, 0.2, 1] as const;
-
-const container = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
-};
-const digit = {
-  hidden: { y: "120%" },
-  show: { y: "0%", transition: { duration: 1, ease } },
-};
-const rise = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.8, ease } },
-};
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 export default function NotFound() {
+  const reduce = useReducedMotion();
+
+  // cursor position, normalized to -0.5..0.5 and smoothed
+  const rawX = useMotionValue(0);
+  const rawY = useMotionValue(0);
+  const mx = useSpring(rawX, { stiffness: 50, damping: 20 });
+  const my = useSpring(rawY, { stiffness: 50, damping: 20 });
+
+  // background drifts opposite to the cursor, numerals follow it a little
+  const bgX = useTransform(mx, [-0.5, 0.5], [24, -24]);
+  const bgY = useTransform(my, [-0.5, 0.5], [16, -16]);
+  const numX = useTransform(mx, [-0.5, 0.5], [-14, 14]);
+  const numY = useTransform(my, [-0.5, 0.5], [-10, 10]);
+
+  const digitClass =
+    "inline-block bg-linear-to-b from-white via-white/80 to-white/10 bg-clip-text font-semibold leading-none tracking-tighter text-transparent text-[clamp(7rem,30vw,22rem)]";
+
   return (
-    <main className="relative flex min-h-svh flex-col items-center justify-center overflow-hidden bg-white px-6 pb-[env(safe-area-inset-bottom)] pt-24 text-center text-neutral-900">
+    <main
+      className="relative isolate flex min-h-screen items-center justify-center overflow-hidden text-white"
+      onMouseMove={(e) => {
+        if (reduce) return;
+        rawX.set(e.clientX / window.innerWidth - 0.5);
+        rawY.set(e.clientY / window.innerHeight - 0.5);
+      }}
+    >
       <motion.div
-        variants={container}
-        initial="hidden"
-        animate="show"
-        className="flex w-full flex-col items-center"
+        aria-hidden
+        style={{ x: bgX, y: bgY }}
+        className="absolute inset-[-6%] -z-20"
       >
-      
-        <div
-          aria-hidden
-          className="flex select-none overflow-hidden pb-[0.15em] font-serif text-[36vw] font-medium leading-[0.85] tracking-tighter text-transparent [-webkit-text-stroke:1px_rgba(9,30,60,0.35)] sm:text-[24vw] lg:text-[17rem]"
+        <motion.div
+          initial={reduce ? false : { scale: 1.2, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 2.6, ease: EASE }}
+          className="relative h-full w-full"
         >
-          {"404".split("").map((c, i) => (
-            <motion.span key={i} variants={digit} className="inline-block">
-              {c}
+          <Image
+            src="/404.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover"
+          />
+        </motion.div>
+      </motion.div>
+
+      <div className="absolute inset-0 -z-10 bg-linear-to-t from-neutral-950/95 via-neutral-900/65 to-neutral-900/35" />
+      <div className="absolute inset-0 -z-10 bg-[#091e3c]/30 mix-blend-multiply" />
+
+      <div className="mx-auto flex w-full max-w-5xl flex-col items-center px-6 py-24 text-center">
+        <motion.p
+          aria-hidden
+          style={{ x: numX, y: numY }}
+          className="mt-4 select-none"
+        >
+          <motion.span
+            animate={reduce ? undefined : { y: [0, -12, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="flex items-center justify-center"
+          >
+            <motion.span
+              initial={reduce ? false : { opacity: 0, x: -140 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1.4, delay: 0.3, ease: EASE }}
+              className={digitClass}
+            >
+              4
             </motion.span>
-          ))}
-        </div>
+            <motion.span
+              initial={
+                reduce ? false : { opacity: 0, scale: 0.5, rotate: -140 }
+              }
+              animate={{ opacity: 1, scale: 1, rotate: 0 }}
+              transition={{ duration: 1.6, delay: 0.55, ease: EASE }}
+              className={digitClass}
+            >
+              0
+            </motion.span>
+            <motion.span
+              initial={reduce ? false : { opacity: 0, x: 140 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 1.4, delay: 0.8, ease: EASE }}
+              className={digitClass}
+            >
+              4
+            </motion.span>
+          </motion.span>
+        </motion.p>
 
         <motion.h1
-          variants={rise}
-          className="mt-6 max-w-2xl font-serif text-3xl font-medium leading-tight tracking-tight text-neutral-900 md:text-5xl"
+          initial={reduce ? false : { opacity: 0, x: -70 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1.2, delay: 1.1, ease: EASE }}
+          className="-mt-2 text-3xl font-semibold tracking-tight sm:text-5xl"
         >
-          <span className="sr-only">404. </span>
-          We couldn’t find that address.
+          <span className="sr-only">404, Page not found. </span>
+          We couldn’t find
+          <span className="block font-serif font-normal italic text-white/90">
+            this address.
+          </span>
         </motion.h1>
 
-        <motion.p
-          variants={rise}
-          className="mt-4 max-w-md font-serif text-base leading-relaxed text-neutral-600 md:text-lg"
-        >
-          The page may have been moved, sold, or never existed. Let’s get you
-          back on track.
-        </motion.p>
-
         <motion.div
-          variants={rise}
-          className="mt-10 flex w-full max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center"
+          initial={reduce ? false : { opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1.1, delay: 1.65, ease: EASE }}
+          className="mt-10 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row"
         >
-          <Link
-            href="/"
-            className="group inline-flex h-12 items-center justify-center gap-2 rounded-sm bg-[#091e3c] px-7 font-serif text-xs font-semibold uppercase tracking-wider text-white transition-colors duration-300 hover:bg-[#071832]"
-          >
-            Return home
-            <ArrowUpRight
-              size={16}
-              className="transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-            />
-          </Link>
+          <Button className="h-12 w-full rounded-full bg-white px-8 text-sm font-semibold text-[#091e3c] shadow-lg shadow-black/20 transition-colors hover:bg-white/90 sm:w-auto">
+            <Link href="/">Go back home</Link>
+          </Button>
 
-          <Link
-            href="/properties"
-            className="inline-flex h-12 items-center justify-center rounded-sm border border-neutral-300 px-7 font-serif text-xs font-semibold uppercase tracking-wider text-neutral-900 transition-colors duration-300 hover:border-neutral-900 hover:bg-neutral-50"
+          <Button
+            variant="outline"
+            className="group h-12 w-full rounded-full border-white/30 bg-white/10 px-8 text-sm font-semibold text-white backdrop-blur-md transition-colors hover:bg-white/20 hover:text-white sm:w-auto"
           >
-            View properties
-          </Link>
+            <Link href="https://constrally.com/properties">
+              Browse properties
+            </Link>
+          </Button>
         </motion.div>
-
-        <motion.p
-          variants={rise}
-          className="mt-8 font-serif text-xs uppercase tracking-wider text-neutral-500"
-        >
-          Need help?{" "}
-          <Link
-            href="/#contact"
-            className="border-b border-neutral-400 pb-0.5 text-neutral-900 transition-colors hover:border-neutral-900"
-          >
-            Contact us
-          </Link>
-        </motion.p>
-      </motion.div>
+      </div>
     </main>
   );
 }

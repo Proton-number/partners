@@ -94,11 +94,27 @@ export default async function Hero() {
           </Reveal>
 
           <Reveal direction="up" delay={0.95} className="mt-8">
-            <Link href="/partners" className="block sm:inline-block">
-              <Button className="h-12 w-full cursor-pointer rounded-full bg-[#091e3c] px-8 text-sm font-semibold text-white shadow-lg shadow-[#091e3c]/20 transition-colors hover:bg-[#0b315d] sm:w-auto">
-                Become partners
-              </Button>
-            </Link>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <Link href="/partners" className="w-full sm:w-auto">
+                <Button className="group h-13 w-full cursor-pointer rounded-full bg-[#091e3c] px-8 text-sm font-semibold text-white shadow-lg shadow-[#091e3c]/20 transition-all duration-300 hover:-translate-y-1 hover:bg-[#0b315d] hover:shadow-xl sm:w-auto">
+                  Become a Partner
+                </Button>
+              </Link>
+
+              <Link
+                href="https://constrally.com/properties"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  variant="outline"
+                  className="group h-13 w-full cursor-pointer rounded-full border border-[#091e3c]/20 bg-white px-8 text-sm font-semibold text-[#091e3c] transition-all duration-300 hover:-translate-y-1 hover:border-[#091e3c] hover:bg-[#091e3c]/5 sm:w-auto"
+                >
+                  View Properties
+                </Button>
+              </Link>
+            </div>
           </Reveal>
 
           <Reveal direction="up" delay={1.15}>
