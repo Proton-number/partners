@@ -112,7 +112,7 @@ export default function NotFound() {
           transition={{ duration: 1.2, delay: 1.1, ease: EASE }}
           className="-mt-2 text-3xl font-semibold tracking-tight sm:text-5xl"
         >
-          <span className="sr-only">404, Page not found. </span>
+          <span className="sr-only">404, Page not found.</span>
           We couldn’t find
           <span className="block font-serif font-normal italic text-white/90">
             this address.
